@@ -8,6 +8,10 @@ import * as dayjs from 'dayjs';
 // node-forge
 import * as forge from 'node-forge';
 import * as https from 'https';
+// dns
+export * from './dns';
+// cloud
+export * from './cloud';
 // archiver
 import * as archiver from 'archiver';
 import * as fs from 'fs';
