@@ -2,7 +2,7 @@
 
 </p>
 <p align="center">
-  <img src="doc/image/logo_brand.png" width="180px" alt="zuxcloud">
+  <img src="doc/image/assets-certeasy-logo.png" width="180px" alt="zuxcloud">
 </p>
 
 ## 简介
@@ -65,3 +65,13 @@ Email: <a href="mailto:zuxing.xu@lettered.cn">zuxing.xu@lettered.cn</a>
 
 <img src="doc/image/wechat-contact.jpg" width="180px" alt="zuxcloud">
 <img src="doc/image/wechat-donate.jpg" width="180px" alt="zuxcloud">
+
+# 使用条款
+
+本项目的代码仅供学习、研究和个人使用。未经许可，禁止将该软件用于商业用途，包括但不限于：
+- 作为商业产品的一部分使用；
+- 提供商业服务；
+- 直接或间接地通过该软件获利。
+
+如果有商业用途需求，请联系作者。
+
