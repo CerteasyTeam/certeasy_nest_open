@@ -1,85 +1,67 @@
+<p style="display:flex; justify-content: center">
+
+</p>
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <img src="doc/image/logo_brand.png" width="180px" alt="zuxcloud">
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## 简介
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+本系统基于 [OHTTPS](https://ohttps.com) 参照进行开发，使用`NestJS` + `TypeORM` 构建开发接口，前端使用 `TDesign Starter VUE3` 进行基础模板。
 
-## Description
+面向个人、团队及企业，提供一站式证书申请服务，自动签发更新，自动部署同步，定时证书监控，实现简单、高效、快捷的证书自动化服务。
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 预览
 
-## Project setup
+*   官网 [Certeasy.cn](https://www.certeasy.cn)， 单一静态页
+*   控制台 [Certeasy App](https://app.certeasy.cn)，证书管理功能集合
+*   文档 [Certeasy Docs](https://docs.certeasy.cn)， 使用`vitepress`构建
 
-```bash
-$ yarn install
-```
+## 截图
 
-## Compile and run the project
+![app.certeasy.cn_signin.png](doc/image/app.certeasy.cn_signin.png)
 
-```bash
-# development
-$ yarn run start
+![app.certeasy.cn_overview.png](doc/image/app.certeasy.cn_overview.png)
 
-# watch mode
-$ yarn run start:dev
+![app.certeasy.cn_certificate.png](doc/image/app.certeasy.cn_certificate.png)
 
-# production mode
-$ yarn run start:prod
-```
+![app.certeasy.cn_certificate_1.png](doc/image/app.certeasy.cn_certificate_1.png)
 
-## Run tests
+![app.certeasy.cn_dns.png](doc/image/app.certeasy.cn_dns.png)
 
-```bash
-# unit tests
-$ yarn run test
+![app.certeasy.cn_cloud.png](doc/image/app.certeasy.cn_cloud.png)
 
-# e2e tests
-$ yarn run test:e2e
+![app.certeasy.cn_cloud_1.png](doc/image/app.certeasy.cn_cloud_1.png)
 
-# test coverage
-$ yarn run test:cov
-```
+![app.certeasy.cn_watch.png](doc/image/app.certeasy.cn_watch.png)
 
-## Resources
+![app.certeasy.cn_watch_1.png](doc/image/app.certeasy.cn_watch_1.png)
 
-Check out a few resources that may come in handy when working with NestJS:
+![app.certeasy.cn_fee.png](doc/image/app.certeasy.cn_fee.png)
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 系列文章
 
-## Support
+*   [Nestjs构建Certeasy证书自动化平台 - 介绍](https://juejin.cn/post/7418522323756433434)
+*   [Nestjs构建Certeasy证书自动化平台 - 框架搭建](https://juejin.cn/post/7418546982195003419)
+*   [Nestjs构建Certeasy证书自动化平台 - 业务实现（登录注册）](https://juejin.cn/spost/7418546982195527707)
+*   Nestjs构建Certeasy证书自动化平台 - 业务实现（证书模块）
+*   Nestjs构建Certeasy证书自动化平台 - 业务实现（DNS授权模块）
+*   Nestjs构建Certeasy证书自动化平台 - 业务实现（云资源模块）
+*   Nestjs构建Certeasy证书自动化平台 - 业务实现（证书监控模块）
+*   [Nestjs构建Certeasy证书自动化平台 - 业务实现（用户模块）](https://juejin.cn/post/7418548134592659465)
+*   Nestjs构建Certeasy证书自动化平台 - 业务实现（通知模块）
+*   Nestjs构建Certeasy证书自动化平台 - 业务实现（充值模块）
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 开源
 
-## Stay in touch
+*   前端: [GitHub: certeasy\_tdesign\_open](https://github.com/CerteasyTeam/certeasy_tdesign_open)
+*   后端: [GitHub: certeasy\_nest\_open](https://github.com/CerteasyTeam/certeasy_nest_open)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 联系
 
-## License
+wechat: zuxcloud
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Email: <a href="mailto:zuxing.xu@lettered.cn">zuxing.xu@lettered.cn</a>
+
+<img src="doc/image/wechat-contact.jpg" width="180px" alt="zuxcloud">
+<img src="doc/image/wechat-donate.jpg" width="180px" alt="zuxcloud">
