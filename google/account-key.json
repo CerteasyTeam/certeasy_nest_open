@@ -1,0 +1,13 @@
+{
+    "type": "service_account",
+    "project_id": "xxxxxx",
+    "private_key_id": "a5a2d57a16......3dd7b164a8",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIqQD3V7LwTLEpNOXA2wH4\nnGe5DB9G2ucaNwKdpfUtE+Q==\n-----END PRIVATE KEY-----\n",
+    "client_email": "xxxxxx-xxxxxx@certeasy.iam.gserviceaccount.com",
+    "client_id": "11594......3948",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/certeasy-account%40certeasy.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+}
