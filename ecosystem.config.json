@@ -1,0 +1,32 @@
+{
+    "apps": [
+        {
+            "name": "certeasy-api",
+            "script": "./dist/main.js",
+            "watch": "./dist",
+            "instances": "max",
+            "ignore_watch": [
+                ".certeasy",
+                "billing",
+                "node_modules",
+                "logs"
+            ],
+            "error_file": "./logs/certeasy-api-err.log",
+            "out_file": "./logs/certeasy-api-out.log",
+            "merge_logs": true,
+            "log_date_format": "YYYY-MM-DD HH:mm:ss",
+            "env": {
+                "COMMON_VARIABLE": "true"
+            },
+            "env_production": {
+                "NODE_ENV": "production"
+            },
+            "env_staging": {
+                "NODE_ENV": "staging"
+            },
+            "env_development": {
+                "NODE_ENV": "development"
+            }
+        }
+    ]
+}
