@@ -1,0 +1,104 @@
+ [
+    {
+      "name": "certificate",
+      "description": "证书计费",
+      "rules": [
+        {
+          "name": "create",
+          "description": "创建证书计费",
+          "methods": [
+            {
+              "name": "single",
+              "description": "单域名证书",
+              "config": {
+                "price": 3,
+                "currency": "COIN"
+              }
+            },
+            {
+              "name": "multi",
+              "description": "单域名证书",
+              "config": {
+                "price": 6,
+                "currency": "COIN"
+              }
+            },
+            {
+              "name": "wildcard",
+              "description": "泛域名证书",
+              "config": {
+                "price": 6,
+                "currency": "COIN"
+              }
+            }
+          ]
+        },
+        {
+          "name": "update",
+          "description": "更新证书计费",
+          "methods": [
+            {
+              "name": "manual",
+              "description": "手动更新",
+              "config": {
+                "price": 20,
+                "currency": "COIN"
+              }
+            },
+            {
+              "name": "automatic",
+              "description": "自动更新",
+              "config": {
+                "price": 40,
+                "currency": "COIN"
+              }
+            }
+          ]
+        },
+        {
+          "name": "deploy",
+          "description": "部署证书计费",
+          "methods": [
+            {
+              "name": "manual",
+              "description": "手动部署",
+              "config": {
+                "price": 40,
+                "currency": "COIN"
+              }
+            },
+            {
+              "name": "automatic",
+              "description": "自动部署",
+              "config": {
+                "price": 80,
+                "currency": "COIN"
+              }
+            }
+          ]
+        },
+        {
+          "name": "watch",
+          "description": "监控证书计费",
+          "methods": [
+            {
+              "name": "manual",
+              "description": "手动监控",
+              "config": {
+                "price": 2,
+                "currency": "COIN"
+              }
+            },
+            {
+              "name": "automatic",
+              "description": "自动监控",
+              "config": {
+                "price": 4,
+                "currency": "COIN"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
