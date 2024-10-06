@@ -9,6 +9,7 @@ import {
   ManyToOne,
   JoinColumn,
   VirtualColumn,
+  OneToOne,
 } from 'typeorm';
 import { BaseEntity } from '@app/common';
 import { cryptoMd5, randomString } from '@app/utils';
@@ -64,7 +65,7 @@ export class WatchEntity extends BaseEntity {
   @Column({ type: 'int', name: 'latest_record_id', comment: '最新记录' })
   latestRecordId: number;
 
-  @OneToMany(() => WatchRecordEntity, (watchRecord) => watchRecord.watch)
+  @OneToOne(() => WatchRecordEntity, (watchRecord) => watchRecord.id)
   @JoinColumn({ name: 'latest_record_id' })
   latestRecord: WatchRecordEntity;
 
