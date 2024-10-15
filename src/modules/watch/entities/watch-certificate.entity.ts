@@ -19,7 +19,7 @@ export class WatchCertificateEntity extends BaseEntity {
   subject: any;
 
   @Expose()
-  @Column({ type: 'varchar', name: 'subjectaltname', comment: '别名' })
+  @Column({ type: 'text', name: 'subjectaltname', comment: '别名' })
   subjectaltname: string;
 
   @Expose()
