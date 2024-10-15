@@ -11,7 +11,12 @@ import {
   VirtualColumn,
   JoinTable,
 } from 'typeorm';
-import { cryptoMd5, randomString } from '@app/utils';
+import {
+  cryptoDecrypt,
+  cryptoEncrypt,
+  cryptoMd5,
+  randomString,
+} from '@app/utils';
 import { Expose } from 'class-transformer';
 import { BaseEntity } from '@app/common';
 // entities
@@ -71,7 +76,17 @@ export class CloudEntity extends BaseEntity {
   alias: string;
 
   @Expose()
-  @Column({ type: 'json', name: 'accessJson', comment: '配置内容' })
+  @Column({
+    type: 'text',
+    name: 'accessJson',
+    nullable: true,
+    comment: '配置信息',
+    transformer: {
+      to: (value: any) =>
+        value ? cryptoEncrypt(JSON.stringify(value)) : value, // 保存时加密
+      from: (value: any) => (value ? JSON.parse(cryptoDecrypt(value)) : value), // 读取时解密
+    },
+  })
   accessJson: any;
 
   @Expose()
