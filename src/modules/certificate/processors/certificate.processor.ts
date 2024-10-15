@@ -28,6 +28,7 @@ dns.setServers([
   '119.29.29.29',
   '180.76.76.76',
 ]);
+import * as _ from 'lodash';
 import * as dayjs from 'dayjs';
 // utils
 import {
@@ -37,11 +38,16 @@ import {
   asleep,
   retryFuncWithDelay,
   readCertificateInfo,
+  expandWildcardDomains,
 } from '@app/utils';
 // acme.module
 import { AcmeService } from '@app/share/acme/acme.service';
 import { AcmeClientLogger } from '@app/share/acme/loggers';
-import { CERTIFICATE_AUTH_MODE, DATE_FORMAT } from '@app/common';
+import {
+  CERTIFICATE_AUTH_MODE,
+  CERTIFICATE_TYPE,
+  DATE_FORMAT,
+} from '@app/common';
 // dns modules
 import { DnsService } from '@app/modules/dns/dns.service';
 // notification
@@ -143,6 +149,9 @@ export class CertificateProcessor {
       await this.updateCertificateJobInError(certificate);
       // 删除job
       await job.remove();
+      // 清理client
+      this.clearAcmeClient(certificate);
+      await this.removeDnsFactory(certificate);
     }
     this.logger.debug('===========   handleQueueFailed  end  ===========');
   }
@@ -285,6 +294,7 @@ export class CertificateProcessor {
     ) {
       return {
         validation: false,
+        status: 'invalid',
         error: `ACME challenge active pre validation failed: Invalid Status`,
       };
     } else {
@@ -490,59 +500,75 @@ export class CertificateProcessor {
     if (validation !== true) {
       return {
         validation: false,
+        challenge,
         error: `ACME challenge active pre validation failed: ${validation}`,
       };
     }
-    // 如果前置校验和acme校验都通过了则直接返回
-    if (validation && challenge.status === 'valid') {
-      return {
-        validation: validation,
-        status: challenge.status,
-        error: '',
-      };
-    }
-    // 前置校验通过，提交acme challenge
-    let completeChallenge = {
-      status: 'pending',
+    // 如果前置校验通过，返回challenge 给下一步检查
+    return {
+      validation: validation,
+      status: challenge.status,
+      challenge,
       error: '',
     };
-    // asleep 停止3s 后处理
-    await asleep(3e3);
-    // 提交 acme 挑战 执行提交重试
-    completeChallenge = await retryFuncWithDelay(
-      async () => {
-        return new Promise(async (resolve, reject) => {
-          // 提交acme challenge completed
-          try {
-            const { status } = await this.acmeService.submitChallengeCompleted(
-              client,
-              challenge,
-            );
-            this.logger.debug('completeChallenge', completeChallenge);
-            if (status === 'pending' || status === 'invalid') {
-              return reject({
-                status,
-                error: `acme challenge completed err: validation ${status}.`,
-              });
-            }
-            return resolve({ status, error: null });
-          } catch (err) {
-            return reject({
-              status: 'invalid',
-              error: 'acme challenge completed err: ' + err.message,
+  }
+
+  /**
+   * 提交远程校验
+   * @param client
+   * @param authorizationsResult
+   * @private
+   */
+  private async asyncSubmitChallengeCompleted(
+    client: acme.Client,
+    authorizationsResult: any,
+  ) {
+    // TODO 进行远程校验, 同步校验结果返回
+    return await Promise.all(
+      authorizationsResult.map(async (result: any) => {
+        // 前置校验通过，提交acme challenge
+        let completeChallenge = {
+          status: 'pending',
+          error: '',
+        };
+        completeChallenge = await retryFuncWithDelay(
+          async () => {
+            return new Promise(async (resolve, reject) => {
+              // 提交acme challenge completed
+              try {
+                const { status } =
+                  await this.acmeService.submitChallengeCompleted(
+                    client,
+                    result?.challenge,
+                  );
+                await this.acmeService.waitForChallengeValidStatus(
+                  client,
+                  result?.challenge,
+                );
+                if (status === 'pending' || status === 'invalid') {
+                  return reject({
+                    status,
+                    error: `acme challenge completed err: validation ${status}.`,
+                  });
+                }
+                return resolve({ status, error: null });
+              } catch (err) {
+                return reject({
+                  status: 'invalid',
+                  error: 'acme challenge completed err: ' + err.message,
+                });
+              }
             });
-          }
-        });
-      },
-      3,
-      2e3,
+          },
+          3,
+          2e3,
+        );
+        return {
+          ...result,
+          ...completeChallenge,
+        };
+      }),
     );
-    // TODO completeChallenge.status === 'invalid' 怎么处理
-    // 校验通过，提交Acme 进行验证
-    return {
-      validation,
-      ...completeChallenge,
-    };
   }
 
   @Process('acme-order')
@@ -556,9 +582,6 @@ export class CertificateProcessor {
     let autoCloseJob: Job<any>, autoChallengeJob: Job<any>;
     try {
       // 写入一个延时 30分钟，进行关闭处理
-      this.logger.log(
-        'add acme-close:' + dayjs().format('YYYY-MM-DD HH:mm:ss'),
-      );
       const timeout = this.configService.get<number>(
         'acme.process_timeout',
         15,
@@ -573,8 +596,15 @@ export class CertificateProcessor {
           removeOnFail: true,
         },
       );
+      this.logger.log(
+        'add acme-close:' +
+          dayjs().add(timeout, 'minute').format('YYYY-MM-DD HH:mm:ss'),
+      );
       // 记录取消id, 用于后面取消队列
       this.acmeCloseJobId.set(certificate.name, autoCloseJob.id);
+      this.logger.log(
+        'acmeCloseJobId >> ' + this.acmeCloseJobId.get(certificate.name),
+      );
       // 记录日志
       acme.setLogger((message: string) =>
         this.acmeClientLogger.log(
@@ -584,7 +614,21 @@ export class CertificateProcessor {
       );
       // 拉取配置
       const client = await this.getCertificateAcmeClient(user, certificate);
-      const identifiers = certificate.domains.map((ident: string) => {
+
+      // 域名信息要做处理
+      let domains = certificate.domains;
+      // 泛域名补充
+      if (certificate?.type === CERTIFICATE_TYPE.WILDCARD) {
+        const { domain } = extractDomainWithPrefix(
+          _.first(certificate.domains),
+          true,
+        );
+        this.logger.log('wildcard domain:' + domain);
+        // 1.单域名如果是没有www的，需要补充 www
+        // 3.泛域名都补充 子主域名 *.example.com, example.com
+        domains = expandWildcardDomains(certificate.domains, domain);
+      }
+      const identifiers = domains.map((ident: string) => {
         return {
           type: 'dns',
           value: ident,
@@ -592,6 +636,7 @@ export class CertificateProcessor {
       });
       // 无数据直接忽略
       if (identifiers.length <= 0) return job.moveToCompleted();
+      this.logger.log('add identifiers:' + JSON.stringify(identifiers));
       const order = await this.acmeService.placeOrder(client, {
         identifiers,
       });
@@ -630,6 +675,18 @@ export class CertificateProcessor {
   async updateCertificateJobInError(certificate: any) {
     try {
       this.logger.debug('certificate', certificate);
+      // 操作之前检查是不是已经正常状态 2 了
+      const info = await this.certificateService.getCertificateInfoById(
+        certificate.id,
+      );
+      // 不存在或者存在状态完成的不做操作
+      if (!info || info?.status >= 2) {
+        this.logger.log(
+          'No update is required because the information does not exist or has been completed',
+        );
+        this.logger.log(info);
+        return;
+      }
       //TODO  更新证书和记录版本为错误
       await this.certificateService.updateCertificateById(certificate.id, {
         status: 0,
@@ -715,7 +772,7 @@ export class CertificateProcessor {
       // 验证模式 1 file 2 file-alias 3 dns 4 dns-alias
       // 系统定义类型 http-01 [1 2] dns-01 [3 4]
       // 提取对应类型的challenge, 循环处理
-      const authorizationsResult = await authorizations.reduce(
+      let authorizationsResult = await authorizations.reduce(
         async (promiseChain, currentTask) => {
           const results = await promiseChain;
           // 处理数据 asyncExecuteChallenge
@@ -727,7 +784,15 @@ export class CertificateProcessor {
           return [...results, challengeResult];
         },
         Promise.resolve([]),
-      ); // 初始值为 resolved 的 Promise 和空数组;
+      );
+      // asleep 停止5s 后处理
+      await asleep(5e3);
+      // TODO 进行远程校验, 同步校验结果返回
+      authorizationsResult = await this.asyncSubmitChallengeCompleted(
+        client,
+        authorizationsResult,
+      );
+      // 初始值为 resolved 的 Promise 和空数组;
       this.logger.debug('authorizationsResult', authorizationsResult);
       // 主动校验通过再处理 challenge.status == 'valid'
       // 直接读取是否有错误吧

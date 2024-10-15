@@ -814,6 +814,16 @@ export class CertificateService {
   }
 
   /**
+   * 通过id获取证书信息
+   * @param certificateId
+   */
+  async getCertificateInfoById(certificateId: number) {
+    return await this.certificateRepository.findOneBy({
+      id: certificateId,
+    });
+  }
+
+  /**
    * 更新证书信息 - ById
    * @param certificateId
    * @param data
