@@ -5,7 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DataSource, In, LessThanOrEqual, Repository } from 'typeorm';
+import { Between, DataSource, In, Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { InjectQueue } from '@nestjs/bull';
@@ -186,13 +186,6 @@ export class WatchService {
       await this.pushWatchQueue(user, watch, watchRecord);
       // commitTransaction
       await queryRunner.commitTransaction();
-      // TODO 消费 手动证书监控
-      await this.billingService.triggerBilling(
-        user.id,
-        'certificate',
-        'watch',
-        'manual',
-      );
       return watch;
     } catch (err) {
       // rollbackTransaction
@@ -210,8 +203,14 @@ export class WatchService {
    * @param user
    * @param watch
    * @param watchRecord
+   * @param triggerType
    */
-  async pushWatchQueue(user: IUserPayload, watch: any, watchRecord: any) {
+  async pushWatchQueue(
+    user: IUserPayload,
+    watch: any,
+    watchRecord: any,
+    triggerType = 'manual',
+  ) {
     // 超时错误
     const watchCloseJob = await this.watchQueue.add(
       'watch-close',
@@ -219,6 +218,7 @@ export class WatchService {
         user,
         watch,
         watchRecord,
+        triggerType,
       },
       {
         delay: 10 * 600e3, // 10分钟后关闭
@@ -372,8 +372,14 @@ export class WatchService {
    * @param user
    * @param watch
    * @param latestWatchRecord
+   * @param triggerType
    */
-  async renewRecord(user: IUserPayload, watch: any, latestWatchRecord: any) {
+  async renewRecord(
+    user: IUserPayload,
+    watch: any,
+    latestWatchRecord: any,
+    triggerType = 'manual',
+  ) {
     if (watch) {
       // 扣费前置检查
       await this.billingService.preCheckUserCoin(user);
@@ -388,15 +394,7 @@ export class WatchService {
       const watchRecord = await this.watchRecordRepository.save(recordRepo);
       this.logger.debug('watchRecord completed:' + JSON.stringify(watchRecord));
       // 推送队列
-      await this.pushWatchQueue(user, watch, watchRecord);
-
-      // TODO 消费 自动证书监控
-      await this.billingService.triggerBilling(
-        user.id,
-        'certificate',
-        'watch',
-        'automatic',
-      );
+      await this.pushWatchQueue(user, watch, watchRecord, triggerType);
       return true;
     }
     throw new BadRequestException('数据异常，请稍后尝试');
@@ -415,13 +413,6 @@ export class WatchService {
       watchId: id,
     });
     if (watch && watchRecord) {
-      // TODO 消费 手动证书监控
-      await this.billingService.triggerBilling(
-        user.id,
-        'certificate',
-        'watch',
-        'manual',
-      );
       // 推送队列
       return await this.pushWatchQueue(user, watch, watchRecord);
     }
@@ -432,21 +423,38 @@ export class WatchService {
    * id 更新记录
    * @param id
    * @param data
+   * @param triggerType
    */
-  async updateWatchRecordById(id: number, data: WatchRecordInfoDto) {
+  async updateWatchRecordById(
+    id: number,
+    data: WatchRecordInfoDto,
+    triggerType = 'manual',
+  ) {
     const recordInfo = await this.watchRecordRepository.findOneBy({
       id,
     });
     if (recordInfo) {
+      // watch
+      const watchInfo = await this.watchRepository.findOneBy({
+        id: recordInfo?.watchId,
+      });
       const updateRecordEntity = plainToInstance(WatchRecordEntity, data, {
         excludeExtraneousValues: true,
       });
       this.logger.debug('updateEntity');
       console.log(updateRecordEntity);
-      return await this.watchRecordRepository.update(
+      await this.watchRecordRepository.update(
         recordInfo.id,
         updateRecordEntity,
       );
+      // TODO 消费
+      await this.billingService.triggerBilling(
+        watchInfo.userId,
+        'certificate',
+        'watch',
+        triggerType,
+      );
+      return recordInfo;
     }
     throw new BadRequestException('监控信息找不到');
   }
@@ -476,6 +484,7 @@ export class WatchService {
         return await this.watchCertificateRepository.save(watchCertificateRepo);
       }
     } catch (err) {
+      this.logger.error('create or update watch certificate err: ' + err);
       throw new BadRequestException('创建证书信息错误');
     }
   }

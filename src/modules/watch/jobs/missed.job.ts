@@ -34,15 +34,22 @@ export class MissedWatchesJobService {
     );
     // 获取到点监控超出10分钟的数据
     const watches: any[] = await this.watchService.getTheMissedWatches();
-    this.logger.debug('missed watches', watches);
+    this.logger.debug(
+      'missed watches',
+      watches.map((d) => ({ name: d.name, domain: d.domain })),
+    );
     // 循环处理
     for (const watch of watches) {
-      console.log('watch', watch);
       try {
         // 执行数据写入和推送队列
-        await this.watchService.renewRecord({ id: watch.userId }, watch, {
-          watchCertificateId: watch?.watchCertificateId,
-        });
+        await this.watchService.renewRecord(
+          { id: watch.userId },
+          watch,
+          {
+            watchCertificateId: watch?.watchCertificateId,
+          },
+          'automatic',
+        );
       } catch (err) {
         this.logger.error('renew-watch-create err:', err.message);
         throw new AppException(err.message);

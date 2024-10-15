@@ -35,17 +35,26 @@ export class WatchProcessor {
    * 更新错误信息
    * @param watch
    * @param watchRecord
+   * @param triggerType
    */
-  async updateCertificateJobInError(watch, watchRecord) {
+  async updateCertificateJobInError(
+    watch: any,
+    watchRecord: any,
+    triggerType = 'automatic',
+  ) {
     try {
       await this.watchService.updateWatchById(watch.id, {
         status: 0,
       });
-      await this.watchService.updateWatchRecordById(watchRecord.id, {
-        ocspStatus: '',
-        error: this.error || '',
-        status: 0, //  0 错误 1 进行中(默认) 2 监听中
-      });
+      await this.watchService.updateWatchRecordById(
+        watchRecord.id,
+        {
+          ocspStatus: '',
+          error: this.error || '',
+          status: 0, //  0 错误 1 进行中(默认) 2 监听中
+        },
+        triggerType,
+      );
     } catch (err) {
       this.logger.error('watch-close err:', err.message);
     }
@@ -53,9 +62,9 @@ export class WatchProcessor {
 
   @Process('watch-close')
   async handleClose(job: Job) {
-    const { watch, watchRecord } = job.data;
+    const { watch, watchRecord, triggerType } = job.data;
     // 自动关单独处理
-    await this.updateCertificateJobInError(watch, watchRecord);
+    await this.updateCertificateJobInError(watch, watchRecord, triggerType);
   }
 
   @OnQueueFailed()
@@ -63,9 +72,9 @@ export class WatchProcessor {
     const attemptsMade = job.attemptsMade;
     const maxAttempts = job.opts.attempts;
     if (attemptsMade === maxAttempts) {
-      const { watch, watchRecord } = job.data;
+      const { watch, watchRecord, triggerType } = job.data;
       console.log('This was the last attempt, and it failed.');
-      await this.updateCertificateJobInError(watch, watchRecord);
+      await this.updateCertificateJobInError(watch, watchRecord, triggerType);
       // 删除job
       await job.remove();
     }
@@ -85,7 +94,7 @@ export class WatchProcessor {
 
   @Process('watch-create')
   async handleCreate(job: Job) {
-    const { user, watch, watchRecord, closeJobId } = job.data;
+    const { user, watch, watchRecord, closeJobId, triggerType } = job.data;
     try {
       // asleep 停止1s 后开始
       await asleep(1e3);
@@ -148,12 +157,16 @@ export class WatchProcessor {
           ),
           revokedTime,
         });
-      await this.watchService.updateWatchRecordById(watchRecord.id, {
-        watchCertificateId: watchCertificate.id,
-        retryTimes: Number(watchRecord.retryTimes || 0) + 1,
-        ocspStatus,
-        status: 2, //  0 错误 1 进行中(默认) 2 监听中
-      });
+      await this.watchService.updateWatchRecordById(
+        watchRecord.id,
+        {
+          watchCertificateId: watchCertificate.id,
+          retryTimes: Number(watchRecord.retryTimes || 0) + 1,
+          ocspStatus,
+          status: 2, //  0 错误 1 进行中(默认) 2 监听中
+        },
+        triggerType,
+      );
       // 计算两个日期之间的天数
       const diffDays = dayjs(certificateInfo.valid_to).diff(dayjs(), 'day');
       // 更新监听信息 - 记录最新记录
@@ -163,6 +176,7 @@ export class WatchProcessor {
       });
       // 执行正常 - 取消自动关单
       await this.clearWatchCloseJob(closeJobId);
+      // 扣费
       // 加入下一次检测队列
       const now = dayjs(); // 当前时间
       const tomorrowSameTime = now.add(1, 'day'); // 明天此时
@@ -212,7 +226,12 @@ export class WatchProcessor {
     const { user, watch, watchRecord } = job.data;
     try {
       // 执行数据写入和推送队列
-      await this.watchService.renewRecord(user, watch, watchRecord);
+      await this.watchService.renewRecord(
+        user,
+        watch,
+        watchRecord,
+        'automatic',
+      );
     } catch (err) {
       this.error = err.message;
       this.logger.error('renew-watch-create err:', err.message);
