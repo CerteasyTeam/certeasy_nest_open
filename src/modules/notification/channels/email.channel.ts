@@ -183,7 +183,7 @@ export class EmailChannelService {
             <span>${cloud.status <= 0 ? '<font color="#f31414">失败</font>' : '<font color="#09a755">成功</font>'}</span>
           </td>
         </tr>
-${cloud.status <= 0 ? '<td style="padding:5px 8px;text-align:left;border:1px solid #e9e9e9;" colspan="3"><span style="color: #e54545">失败原因：${cloud?.error}</span></td>' : ''}`;
+${cloud.status <= 0 ? `<td style="padding:5px 8px;text-align:left;border:1px solid #e9e9e9;" colspan="3"><span style="color: #e54545">失败原因：${cloud?.error}</span></td>` : ''}`;
           })
           .join('') +
         `

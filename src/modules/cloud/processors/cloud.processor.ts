@@ -7,7 +7,7 @@ import { HttpService } from '@nestjs/axios';
 import { AppException } from '@app/common';
 import {
   CloudFactory,
-  asleep,
+  cryptoDecrypt,
   retryFuncWithDelay,
   calculateMaxRetries,
 } from '@app/utils';
@@ -36,13 +36,31 @@ export class CloudProcessor {
     const maxAttempts = job.opts.attempts;
     if (attemptsMade === maxAttempts) {
       const { user, deploy, triggerType } = job.data;
-      const error = this.error.get(deploy.id);
-      console.log('This was the last attempt, and it failed.');
+      const error = this.error.get(deploy.id) || 'unknown error';
+      this.logger.debug('This was the last attempt, and it failed.', error);
       await this.updateDeployInfo(user, deploy, 0, error, triggerType);
       // 删除job
       await job.remove();
     }
     this.logger.debug('===========   handleQueueFailed  end  ===========');
+  }
+  
+  /**
+   * 解析数据
+   * @param accessJson
+   * @returns
+   */
+  private paraseAccessJson(accessJson: string) {
+    // 需要处理加密解密
+    let parseAccessjson = '';
+    try {
+      // 尝试解密：如果解密失败，说明数据是未加密的 JSON 格式，直接返回原数据
+      parseAccessjson = JSON.parse(cryptoDecrypt(accessJson));
+    } catch (error) {
+      // 如果无法解密，说明数据是未加密的，直接返回 JSON 对象
+      parseAccessjson = JSON.parse(accessJson);
+    }
+    return parseAccessjson;
   }
 
   /**
@@ -69,7 +87,7 @@ export class CloudProcessor {
       // 请求接口
       const cloudFactory = CloudFactory.createProvider(
         providerName,
-        JSON.parse(accessJson),
+        this.paraseAccessJson(accessJson),
       );
       try {
         // 设置ssl 证书
@@ -126,7 +144,7 @@ export class CloudProcessor {
     } = job.data;
     const cloudFactory = CloudFactory.createProvider(
       providerName,
-      JSON.parse(accessJson),
+      this.paraseAccessJson(accessJson),
     );
     try {
       // TODO 这里最好再单开一个 process 检查证书

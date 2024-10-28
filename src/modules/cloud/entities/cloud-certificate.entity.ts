@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -43,9 +44,16 @@ export class CloudCertificateEntity extends BaseEntity {
 
   @OneToOne(
     () => CloudDeployEntity,
-    (cloudDeploy) => cloudDeploy.cloudCertificateId,
+    (cloudDeploy) => cloudDeploy.cloudCertificate,
   )
-  @JoinColumn({ name: 'id' })
+  @JoinTable({
+    name: 'cloud_certificate',
+    joinColumn: { name: 'id' },
+    inverseJoinColumn: {
+      name: 'cloud_certificate_id',
+      referencedColumnName: 'id',
+    },
+  })
   deployment: CloudDeployEntity;
 
   @OneToMany(

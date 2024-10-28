@@ -684,11 +684,12 @@ export class CloudService {
         .leftJoinAndSelect('cc.deployment', 'ccd')
         .leftJoinAndSelect('c.provider', 'cp')
         .leftJoinAndSelect('c.providerProduct', 'cpp')
-        .where('cc.id = :id', {
+        .where('cc.id = :id and ccd.id = :cId', {
           id: deployInfo.cloudCertificateId,
+          cId: deployInfo?.id,
         })
         .select([
-          'cc.id as id',
+          'ccd.id as id',
           'ccd.error as error',
           'ccd.status as status',
           'COALESCE(c.alias, c.name) as name',
